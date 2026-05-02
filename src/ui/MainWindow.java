@@ -21,7 +21,7 @@ public class MainWindow extends JFrame {
     private final TransitionLayer camada;
 
     public MainWindow() {
-        setTitle("O(n)");
+        setTitle("O(fun)");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1150, 800);
         setLocationRelativeTo(null);
