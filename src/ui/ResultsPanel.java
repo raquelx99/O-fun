@@ -15,7 +15,7 @@ public class ResultsPanel extends JPanel {
 
     private JTable              tabela;
     private DefaultTableModel   tabelaModel;
-    private SimpleBarChartPanel chartPanel;
+    private BarChartPanel chartPanel;
 
     private JComboBox<String> graficoCombo;
     private JComboBox<String> algoritmoCombo;
@@ -92,7 +92,7 @@ public class ResultsPanel extends JPanel {
         UiTheme.styleScrollPane(tabelaScroll);
         tabelaScroll.setBorder(UiTheme.createSectionBorder("Tabela de Resultados"));
 
-        chartPanel = new SimpleBarChartPanel();
+        chartPanel = new BarChartPanel();
         chartPanel.setMinimumSize(new Dimension(0, 180));
         JPanel wrapChart = UiTheme.makeRoundPanel(UiTheme.PANEL_DARK, UiTheme.RADIUS);
         wrapChart.setLayout(new BorderLayout());

@@ -2,7 +2,6 @@ package ui;
 
 import javax.swing.SwingWorker;
 import java.awt.*;
-import java.awt.geom.RoundRectangle2D;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
