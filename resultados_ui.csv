@@ -1,0 +1,11 @@
+algoritmo,versao,threads,tamanhoEntrada,tipoEntrada,amostra,tempoMs,score,ordenadoCorretamente
+"Bubble Sort","Serial",1,1000,"ALEATORIA",1,2.7541,5897.414882929858,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",2,1.5262,6486.499329649153,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",3,1.605,6436.235235764174,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",4,1.488,6511.809236596228,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",5,1.521,6489.907110156059,true
+"Bubble Sort","Paralelo",8,1000,"ALEATORIA",1,4.623,5381.323780732228,true
+"Bubble Sort","Paralelo",8,1000,"ALEATORIA",2,1.7076,6374.372546789194,true
+"Bubble Sort","Paralelo",8,1000,"ALEATORIA",3,2.0624,6185.94520195209,true
+"Bubble Sort","Paralelo",8,1000,"ALEATORIA",4,1.522,6489.250862474533,true
+"Bubble Sort","Paralelo",8,1000,"ALEATORIA",5,1.1818,6741.8976812767805,true

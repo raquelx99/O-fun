@@ -1,0 +1,3 @@
+algoritmo,versao,threads,tamanhoEntrada,tipoEntrada,mediaMs,menorMs,maiorMs,speedup,eficiencia,todosOrdenadosCorretamente
+"Bubble Sort","Serial",1,1000,"ALEATORIA",1.7788600000000003,1.488,2.7541,1.0,1.0,true
+"Bubble Sort","Paralelo",8,1000,"ALEATORIA",2.2193600000000004,1.1818,4.623,0.801519356931728,0.100189919616466,true
