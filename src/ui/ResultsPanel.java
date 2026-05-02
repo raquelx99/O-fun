@@ -1,13 +1,32 @@
 package ui;
 
 import java.awt.*;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.*;
-
 import javax.swing.table.DefaultTableModel;
+
+import benchmark.AmbienteExecucaoLogger;
+import benchmark.BenchmarkConfig;
+import benchmark.BenchmarkRunner;
+import benchmark.BenchmarkStats;
+import benchmark.CsvExporter;
+import benchmark.CsvResumoExporter;
+import model.ResultadoBenchmark;
+import model.TipoEntrada;
+import parallel.ParallelBubbleSort;
+import parallel.ParallelInsertionSort;
+import parallel.ParallelMergeSort;
+import parallel.ParallelQuickSort;
+import parallel.ParallelSortAlgorithm;
+import sort.BubbleSort;
+import sort.InsertionSort;
+import sort.MergeSort;
+import sort.QuickSort;
+import sort.SortAlgorithm;
 
 public class ResultsPanel extends JPanel {
 
@@ -27,7 +46,19 @@ public class ResultsPanel extends JPanel {
     private List<ResumoResultado> resultadosFiltradosAtuais;
     private List<ResumoResultado> resultados;
 
-    private final String arquivoCsvResumo = "resultados_resumo_ui.csv";
+    private final String arquivoCsvBruto  = "resultados_sorts.csv";
+    private final String arquivoCsvResumo = "resultados_resumo.csv";
+    private final String arquivoAmbiente  = "ambiente_execucao.txt";
+
+    private static final int[]       TAMANHOS = {1000, 5000, 10000};
+    private static final int[]       THREADS  = {1, 2, 4, 8};
+    private static final int         AMOSTRAS = 5;
+    private static final TipoEntrada[] TIPOS  = {
+        TipoEntrada.ALEATORIA, TipoEntrada.ORDENADA,
+        TipoEntrada.QUASE_ORDENADA, TipoEntrada.INVERTIDA, TipoEntrada.REPETIDA
+    };
+
+    private static final int TOTAL = TIPOS.length * TAMANHOS.length * (4 + 4 * THREADS.length);
 
     public ResultsPanel(MainWindow mainWindow) {
         this.mainWindow = mainWindow;
@@ -68,14 +99,232 @@ public class ResultsPanel extends JPanel {
         textos.add(Box.createVerticalStrut(2));
         textos.add(sub);
 
-        JButton atualizar = new JButton("Atualizar");
+        JPanel painelDireito = new JPanel(new GridBagLayout());
+        painelDireito.setOpaque(false);
+        GridBagConstraints bg = new GridBagConstraints();
+        bg.fill = GridBagConstraints.HORIZONTAL; bg.weightx = 1;
+        bg.insets = new Insets(2, 4, 2, 4);
+
+        JButton gerarBtn = new JButton("Gerar dados do trabalho");
+        UiTheme.styleGoldButton(gerarBtn);
+        gerarBtn.setToolTipText(
+            "Executa todos os " + TOTAL + " benchmarks do trabalho e salva nos CSVs " +
+            arquivoCsvBruto + " e " + arquivoCsvResumo
+        );
+        gerarBtn.addActionListener(e -> confirmarEGerarDados(gerarBtn));
+
+        JButton atualizar = new JButton("Atualizar tabela");
         UiTheme.stylePrimaryButton(atualizar);
         atualizar.addActionListener(e -> carregarResultados());
 
-        topo.add(voltar,    BorderLayout.WEST);
-        topo.add(textos,    BorderLayout.CENTER);
-        topo.add(atualizar, BorderLayout.EAST);
+        bg.gridx = 0; bg.gridy = 0; painelDireito.add(gerarBtn,  bg);
+        bg.gridy = 1;               painelDireito.add(atualizar, bg);
+
+        topo.add(voltar,       BorderLayout.WEST);
+        topo.add(textos,       BorderLayout.CENTER);
+        topo.add(painelDireito, BorderLayout.EAST);
         return topo;
+    }
+
+    private void confirmarEGerarDados(JButton gerarBtn) {
+        int resp = JOptionPane.showConfirmDialog(this,
+            "<html><b>Gerar dados completos do trabalho?</b><br><br>" +
+            "Isso vai executar <b>" + TOTAL + " benchmarks</b>:<br>" +
+            "  - 4 algoritmos seriais<br>" +
+            "  - 4 algoritmos paralelos x 4 configuracoes de thread (1, 2, 4, 8)<br>" +
+            "  - 3 tamanhos (1000, 5000, 10000)<br>" +
+            "  - 5 tipos de entrada<br>" +
+            "  - 5 amostras cada<br><br>" +
+            "Os CSVs existentes serao <b>sobrescritos</b>.<br>" +
+            "Pode levar alguns minutos.</html>",
+            "Confirmar geracao de dados",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (resp != JOptionPane.OK_OPTION) return;
+        executarBenchmarkCompleto(gerarBtn);
+    }
+
+    private void executarBenchmarkCompleto(JButton gerarBtn) {
+        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
+                "Gerando dados do trabalho...", false);
+        dialog.setSize(520, 260);
+        dialog.setLocationRelativeTo(this);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+
+        JPanel dp = new JPanel(new BorderLayout(0, 8));
+        dp.setBackground(UiTheme.PANEL);
+        dp.setBorder(BorderFactory.createEmptyBorder(18, 20, 18, 20));
+
+        JLabel statusLbl = new JLabel("Inicializando...");
+        statusLbl.setFont(new Font("Poppins", Font.BOLD, 13));
+        statusLbl.setForeground(UiTheme.TEXT);
+
+        JProgressBar barra = new JProgressBar(0, TOTAL);
+        barra.setStringPainted(true);
+        barra.setString("0 / " + TOTAL);
+        barra.setForeground(UiTheme.BLUE);
+        barra.setBackground(UiTheme.PANEL_DARK);
+        barra.setPreferredSize(new Dimension(0, 22));
+
+        JTextArea logArea = new JTextArea(7, 0);
+        logArea.setEditable(false);
+        UiTheme.styleTextArea(logArea);
+        logArea.setFont(new Font("Poppins", Font.PLAIN, 11));
+        JScrollPane logScroll = new JScrollPane(logArea);
+        UiTheme.styleScrollPane(logScroll);
+
+        JLabel etaLbl = new JLabel(" ");
+        etaLbl.setFont(UiTheme.SMALL_FONT);
+        etaLbl.setForeground(UiTheme.TEXT_MUTED);
+
+        dp.add(statusLbl,  BorderLayout.NORTH);
+        dp.add(barra,      BorderLayout.CENTER);
+
+        JPanel sul = new JPanel(new BorderLayout(0, 4));
+        sul.setOpaque(false);
+        sul.add(etaLbl,    BorderLayout.NORTH);
+        sul.add(logScroll, BorderLayout.CENTER);
+        dp.add(sul, BorderLayout.SOUTH);
+
+        dialog.setContentPane(dp);
+        dialog.setVisible(true);
+
+        gerarBtn.setEnabled(false);
+        long[] inicioTotal = {System.currentTimeMillis()};
+
+        SwingWorker<Void, String[]> worker = new SwingWorker<>() {
+            int execucaoAtual = 0;
+
+            @Override
+            protected Void doInBackground() throws Exception {
+                CsvExporter.writeHeader(arquivoCsvBruto);
+                CsvResumoExporter.writeHeader(arquivoCsvResumo);
+                AmbienteExecucaoLogger.salvar(arquivoAmbiente);
+
+                BenchmarkRunner runner = new BenchmarkRunner();
+                Map<String, Double> mediasSeriais = new HashMap<>();
+
+                List<SortAlgorithm> seriais = List.of(
+                    new BubbleSort(), new InsertionSort(), new QuickSort(), new MergeSort());
+
+                List<ParallelSortAlgorithm> paralelos = List.of(
+                    new ParallelBubbleSort(), new ParallelInsertionSort(),
+                    new ParallelQuickSort(), new ParallelMergeSort());
+
+                for (TipoEntrada tipo : TIPOS) {
+                    for (int tamanho : TAMANHOS) {
+                        BenchmarkConfig config = new BenchmarkConfig(tamanho, tipo, AMOSTRAS);
+
+                        for (SortAlgorithm alg : seriais) {
+                            if (isCancelled()) return null;
+
+                            publish(new String[]{
+                                "Serial: " + alg.getName() + " | " + tamanho + " | " + tipo,
+                                null, null
+                            });
+
+                            List<ResultadoBenchmark> res = runner.runSerial(alg, config);
+                            double media = BenchmarkStats.calcularMedia(res);
+                            String chave = alg.getName() + "|" + tamanho + "|" + tipo.name();
+                            mediasSeriais.put(chave, media);
+
+                            CsvExporter.appendResults(arquivoCsvBruto, res);
+                            CsvResumoExporter.appendResumo(arquivoCsvResumo, res, media);
+
+                            execucaoAtual++;
+                            String eta = calcularEta(inicioTotal[0], execucaoAtual, TOTAL);
+                            publish(new String[]{null,
+                                String.format("  OK  %.3f ms media", media),
+                                eta
+                            });
+                        }
+
+                        for (ParallelSortAlgorithm alg : paralelos) {
+                            for (int threads : THREADS) {
+                                if (isCancelled()) return null;
+
+                                publish(new String[]{
+                                    "Paralelo: " + alg.getName() + " | " + threads + "T | " + tamanho + " | " + tipo,
+                                    null, null
+                                });
+
+                                List<ResultadoBenchmark> res = runner.runParallel(alg, config, threads);
+                                double media = BenchmarkStats.calcularMedia(res);
+                                String chave = alg.getName() + "|" + tamanho + "|" + tipo.name();
+                                double ref   = mediasSeriais.getOrDefault(chave, 0.0);
+
+                                CsvExporter.appendResults(arquivoCsvBruto, res);
+                                CsvResumoExporter.appendResumo(arquivoCsvResumo, res, ref);
+
+                                execucaoAtual++;
+                                String speedupStr = ref > 0
+                                    ? String.format("speedup %.2fx", ref / media) : "serial pendente";
+                                String eta = calcularEta(inicioTotal[0], execucaoAtual, TOTAL);
+                                publish(new String[]{null,
+                                    String.format("  OK  %.3f ms | %s", media, speedupStr),
+                                    eta
+                                });
+                            }
+                        }
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void process(List<String[]> chunks) {
+                for (String[] msg : chunks) {
+                    if (msg[0] != null) {
+                        statusLbl.setText(msg[0]);
+                        barra.setValue(execucaoAtual);
+                        barra.setString(execucaoAtual + " / " + TOTAL);
+                        logArea.append(msg[0] + "\n");
+                    }
+                    if (msg[1] != null) {
+                        logArea.append(msg[1] + "\n");
+                        logArea.setCaretPosition(logArea.getDocument().getLength());
+                    }
+                    if (msg[2] != null) {
+                        etaLbl.setText(msg[2]);
+                    }
+                }
+            }
+
+            @Override
+            protected void done() {
+                gerarBtn.setEnabled(true);
+                dialog.dispose();
+                try {
+                    get();
+                    long totalSeg = (System.currentTimeMillis() - inicioTotal[0]) / 1000;
+                    JOptionPane.showMessageDialog(ResultsPanel.this,
+                        "<html><b>Dados gerados com sucesso!</b><br><br>" +
+                        "Tempo total: " + totalSeg + "s<br>" +
+                        "CSV bruto: <tt>" + arquivoCsvBruto + "</tt><br>" +
+                        "CSV resumo: <tt>" + arquivoCsvResumo + "</tt><br>" +
+                        "Ambiente: <tt>" + arquivoAmbiente + "</tt></html>",
+                        "Concluido!", JOptionPane.INFORMATION_MESSAGE);
+                    carregarResultados();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(ResultsPanel.this,
+                        "Erro durante a geracao:\n" + ex.getMessage(),
+                        "Erro", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        };
+
+        worker.execute();
+    }
+
+    private String calcularEta(long inicio, int feitos, int total) {
+        if (feitos == 0) return " ";
+        long decorrido = System.currentTimeMillis() - inicio;
+        long etaMs = (decorrido / feitos) * (total - feitos);
+        long etaSeg = etaMs / 1000;
+        return String.format("Progresso: %d/%d  |  Tempo decorrido: %ds  |  Estimativa restante: %ds",
+                feitos, total, decorrido / 1000, etaSeg);
     }
 
     private JSplitPane criarCorpo() {
@@ -131,7 +380,7 @@ public class ResultsPanel extends JPanel {
                 "Tempo por tamanho","Tempo por tipo de entrada"});
         algoritmoCombo   = new JComboBox<>(new String[]{"Todos","Bubble Sort","Insertion Sort","Quick Sort","Merge Sort"});
         tipoEntradaCombo = new JComboBox<>(new String[]{"Todos","ALEATORIA","ORDENADA","QUASE_ORDENADA","INVERTIDA","REPETIDA"});
-        tamanhoCombo     = new JComboBox<>(new String[]{"Todos","1000","5000","10000","50000"});
+        tamanhoCombo     = new JComboBox<>(new String[]{"Todos","1000","5000","10000"});
         versaoCombo      = new JComboBox<>(new String[]{"Todos","Serial","Paralelo"});
 
         for (JComboBox<?> c : new JComboBox[]{graficoCombo,algoritmoCombo,tipoEntradaCombo,tamanhoCombo,versaoCombo})
@@ -140,7 +389,7 @@ public class ResultsPanel extends JPanel {
         JPanel linhaFiltros = new JPanel(new GridBagLayout());
         linhaFiltros.setOpaque(false);
 
-        String[] labels = {"Grafico:","Algoritmo:","Tipo entrada:","Tamanho:","Versao:"};
+        String[]     labels = {"Grafico:","Algoritmo:","Tipo entrada:","Tamanho:","Versao:"};
         JComboBox<?>[] combos = {graficoCombo,algoritmoCombo,tipoEntradaCombo,tamanhoCombo,versaoCombo};
 
         GridBagConstraints gc = new GridBagConstraints();
@@ -155,8 +404,8 @@ public class ResultsPanel extends JPanel {
             linhaFiltros.add(combos[i], gc);
         }
 
-        JButton aplicar  = new JButton("Aplicar filtros");
-        JButton analise  = new JButton("Gerar analise");
+        JButton aplicar = new JButton("Aplicar filtros");
+        JButton analise = new JButton("Gerar analise");
         UiTheme.stylePrimaryButton(aplicar);
         UiTheme.styleSecondaryButton(analise);
         aplicar.addActionListener(e -> atualizarTabelaEGrafico());
@@ -173,8 +422,7 @@ public class ResultsPanel extends JPanel {
         container.setBackground(UiTheme.PANEL);
         container.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createMatteBorder(1, 0, 0, 0, UiTheme.BORDER_COLOR),
-                BorderFactory.createEmptyBorder(10, 14, 10, 14)
-        ));
+                BorderFactory.createEmptyBorder(10, 14, 10, 14)));
         container.add(linhaFiltros, BorderLayout.CENTER);
         container.add(botoes,       BorderLayout.EAST);
         return container;
@@ -191,6 +439,8 @@ public class ResultsPanel extends JPanel {
 
     private void carregarResultados() {
         resultados = ResumoCsvReader.ler(arquivoCsvResumo);
+        if (resultados.isEmpty())
+            resultados = ResumoCsvReader.ler("resultados_resumo_ui.csv");
         atualizarTabelaEGrafico();
     }
 
@@ -232,24 +482,24 @@ public class ResultsPanel extends JPanel {
         Map<String, Double> dados; String titulo, eixo;
         switch (tipo) {
             case "Serial vs Paralelo":
-                dados = agrupar(f, r -> r.getVersao().equals("Serial") ? "Serial" : "Paralelo "+r.getThreads()+"T", r -> r.getMediaMs());
+                dados  = agrupar(f, r -> r.getVersao().equals("Serial") ? "Serial" : "Paralelo "+r.getThreads()+"T", r -> r.getMediaMs());
                 titulo = "Serial vs Paralelo"; eixo = "Tempo medio (ms)"; break;
             case "Speedup por threads":
-                dados = agrupar(f.stream().filter(r -> r.getVersao().equals("Paralelo")).toList(),
+                dados  = agrupar(f.stream().filter(r -> r.getVersao().equals("Paralelo")).toList(),
                         r -> r.getThreads()+" threads", r -> r.getSpeedup());
                 titulo = "Speedup por threads"; eixo = "Speedup"; break;
             case "Eficiencia por threads":
-                dados = agrupar(f.stream().filter(r -> r.getVersao().equals("Paralelo")).toList(),
+                dados  = agrupar(f.stream().filter(r -> r.getVersao().equals("Paralelo")).toList(),
                         r -> r.getThreads()+" threads", r -> r.getEficiencia());
                 titulo = "Eficiencia por threads"; eixo = "Eficiencia"; break;
             case "Tempo por tamanho":
-                dados = agrupar(f, r -> String.valueOf(r.getTamanhoEntrada()), r -> r.getMediaMs());
+                dados  = agrupar(f, r -> String.valueOf(r.getTamanhoEntrada()), r -> r.getMediaMs());
                 titulo = "Tempo por tamanho"; eixo = "Tempo medio (ms)"; break;
             case "Tempo por tipo de entrada":
-                dados = agrupar(f, r -> r.getTipoEntrada(), r -> r.getMediaMs());
+                dados  = agrupar(f, r -> r.getTipoEntrada(), r -> r.getMediaMs());
                 titulo = "Tempo por tipo de entrada"; eixo = "Tempo medio (ms)"; break;
             default:
-                dados = agrupar(f, r -> r.getAlgoritmo(), r -> r.getMediaMs());
+                dados  = agrupar(f, r -> r.getAlgoritmo(), r -> r.getMediaMs());
                 titulo = "Tempo medio por algoritmo"; eixo = "Tempo (ms)"; break;
         }
         chartPanel.setDados(dados, titulo, eixo);
