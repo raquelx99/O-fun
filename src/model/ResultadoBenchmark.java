@@ -9,6 +9,7 @@ public class ResultadoBenchmark {
     private int amostra;
     private double tempoMs;
     private double score;
+    private boolean ordenadoCorretamente;
 
     public ResultadoBenchmark(
             String algoritmo,
@@ -18,7 +19,8 @@ public class ResultadoBenchmark {
             String tipoEntrada,
             int amostra,
             double tempoMs,
-            double score
+            double score,
+            boolean ordenadoCorretamente
     ) {
         this.algoritmo = algoritmo;
         this.versao = versao;
@@ -28,6 +30,7 @@ public class ResultadoBenchmark {
         this.amostra = amostra;
         this.tempoMs = tempoMs;
         this.score = score;
+        this.ordenadoCorretamente = ordenadoCorretamente;
     }
 
     public String getAlgoritmo() {
@@ -62,6 +65,10 @@ public class ResultadoBenchmark {
         return score;
     }
 
+    public boolean isOrdenadoCorretamente() {
+        return ordenadoCorretamente;
+    }
+
     public String toCsvLine() {
         return algoritmo + "," +
                 versao + "," +
@@ -70,6 +77,7 @@ public class ResultadoBenchmark {
                 tipoEntrada + "," +
                 amostra + "," +
                 tempoMs + "," +
-                score;
+                score + "," +
+                ordenadoCorretamente;
     }
 }

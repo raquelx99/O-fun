@@ -39,4 +39,14 @@ public class BenchmarkStats {
 
         return maior;
     }
+
+    public static boolean todosOrdenadosCorretamente(List<ResultadoBenchmark> resultados) {
+        for (ResultadoBenchmark resultado : resultados) {
+            if (!resultado.isOrdenadoCorretamente()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

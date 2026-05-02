@@ -11,7 +11,7 @@ public class CsvExporter {
 
     public static void writeHeader(String filePath) {
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath))) {
-            writer.println("algoritmo,versao,threads,tamanhoEntrada,tipoEntrada,amostra,tempoMs,score");
+            writer.println("algoritmo,versao,threads,tamanhoEntrada,tipoEntrada,amostra,tempoMs,score,ordenadoCorretamente");
         } catch (IOException e) {
             System.out.println("Erro ao criar CSV: " + e.getMessage());
         }

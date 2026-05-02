@@ -28,7 +28,9 @@ public class BenchmarkRunner {
 
             long fim = System.nanoTime();
 
-            if (!estaOrdenado(array)) {
+            boolean ordenadoCorretamente = estaOrdenado(array);
+
+            if (!ordenadoCorretamente) {
                 System.out.println("Erro: array não foi ordenado corretamente.");
             }
 
@@ -43,7 +45,8 @@ public class BenchmarkRunner {
                     config.getTipoEntrada().name(),
                     amostra,
                     tempoMs,
-                    score
+                    score,
+                    ordenadoCorretamente
             );
 
             resultados.add(resultado);
@@ -71,7 +74,9 @@ public class BenchmarkRunner {
 
             long fim = System.nanoTime();
 
-            if (!estaOrdenado(array)) {
+            boolean ordenadoCorretamente = estaOrdenado(array);
+
+            if (!ordenadoCorretamente) {
                 System.out.println("Erro: array não foi ordenado corretamente.");
             }
 
@@ -86,7 +91,8 @@ public class BenchmarkRunner {
                     config.getTipoEntrada().name(),
                     amostra,
                     tempoMs,
-                    score
+                    score,
+                    ordenadoCorretamente
             );
 
             resultados.add(resultado);

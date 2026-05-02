@@ -1,0 +1,9 @@
+Informações do Ambiente de Execução
+-----------------------------------
+Sistema operacional: Windows 11
+Versão do sistema: 10.0
+Arquitetura: amd64
+Versão do Java: 21.0.8
+Fornecedor do Java: Eclipse Adoptium
+Núcleos/processadores disponíveis: 20
+Memória máxima da JVM (MB): 8116

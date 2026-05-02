@@ -1,12 +1,16 @@
 package app;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import benchmark.AmbienteExecucaoLogger;
 import benchmark.BenchmarkConfig;
 import benchmark.BenchmarkRunner;
 import benchmark.BenchmarkStats;
 import benchmark.CsvExporter;
+import benchmark.CsvResumoExporter;
 import model.ResultadoBenchmark;
 import model.TipoEntrada;
 import parallel.ParallelBubbleSort;
@@ -23,9 +27,13 @@ import sort.SortAlgorithm;
 public class Main {
 
     public static void main(String[] args) {
-        String arquivoCsv = "resultados_sorts.csv";
+        String arquivoCsvBruto = "resultados_sorts.csv";
+        String arquivoCsvResumo = "resultados_resumo.csv";
+        String arquivoAmbiente = "ambiente_execucao.txt";
 
-        CsvExporter.writeHeader(arquivoCsv);
+        CsvExporter.writeHeader(arquivoCsvBruto);
+        CsvResumoExporter.writeHeader(arquivoCsvResumo);
+        AmbienteExecucaoLogger.salvar(arquivoAmbiente);
 
         BenchmarkRunner runner = new BenchmarkRunner();
 
@@ -62,6 +70,8 @@ public class Main {
                 8
         };
 
+        Map<String, Double> mediasSeriais = new HashMap<>();
+
         for (TipoEntrada tipoEntrada : tiposEntrada) {
             for (int tamanho : tamanhos) {
                 BenchmarkConfig config = new BenchmarkConfig(
@@ -75,20 +85,40 @@ public class Main {
                 System.out.println("Tamanho: " + tamanho);
                 System.out.println("=====================================");
 
-                executarSeriais(runner, algoritmosSeriais, config, arquivoCsv);
-                executarParalelos(runner, algoritmosParalelos, config, quantidadesThreads, arquivoCsv);
+                executarSeriais(
+                        runner,
+                        algoritmosSeriais,
+                        config,
+                        arquivoCsvBruto,
+                        arquivoCsvResumo,
+                        mediasSeriais
+                );
+
+                executarParalelos(
+                        runner,
+                        algoritmosParalelos,
+                        config,
+                        quantidadesThreads,
+                        arquivoCsvBruto,
+                        arquivoCsvResumo,
+                        mediasSeriais
+                );
             }
         }
 
         System.out.println("Benchmark finalizado!");
-        System.out.println("Resultados salvos em: " + arquivoCsv);
+        System.out.println("CSV bruto salvo em: " + arquivoCsvBruto);
+        System.out.println("CSV de resumo salvo em: " + arquivoCsvResumo);
+        System.out.println("Ambiente de execução salvo em: " + arquivoAmbiente);
     }
 
     private static void executarSeriais(
             BenchmarkRunner runner,
             List<SortAlgorithm> algoritmosSeriais,
             BenchmarkConfig config,
-            String arquivoCsv
+            String arquivoCsvBruto,
+            String arquivoCsvResumo,
+            Map<String, Double> mediasSeriais
     ) {
         for (SortAlgorithm algoritmo : algoritmosSeriais) {
             System.out.println("Executando serial: " + algoritmo.getName());
@@ -96,7 +126,24 @@ public class Main {
             List<ResultadoBenchmark> resultados = runner.runSerial(algoritmo, config);
 
             imprimirResumo(resultados);
-            CsvExporter.appendResults(arquivoCsv, resultados);
+
+            CsvExporter.appendResults(arquivoCsvBruto, resultados);
+
+            double mediaSerial = BenchmarkStats.calcularMedia(resultados);
+
+            String chave = criarChave(
+                    algoritmo.getName(),
+                    config.getTamanhoEntrada(),
+                    config.getTipoEntrada().name()
+            );
+
+            mediasSeriais.put(chave, mediaSerial);
+
+            CsvResumoExporter.appendResumo(
+                    arquivoCsvResumo,
+                    resultados,
+                    mediaSerial
+            );
         }
     }
 
@@ -105,7 +152,9 @@ public class Main {
             List<ParallelSortAlgorithm> algoritmosParalelos,
             BenchmarkConfig config,
             int[] quantidadesThreads,
-            String arquivoCsv
+            String arquivoCsvBruto,
+            String arquivoCsvResumo,
+            Map<String, Double> mediasSeriais
     ) {
         for (ParallelSortAlgorithm algoritmo : algoritmosParalelos) {
             for (int threads : quantidadesThreads) {
@@ -118,9 +167,28 @@ public class Main {
                 );
 
                 imprimirResumo(resultados);
-                CsvExporter.appendResults(arquivoCsv, resultados);
+
+                CsvExporter.appendResults(arquivoCsvBruto, resultados);
+
+                String chave = criarChave(
+                        algoritmo.getName(),
+                        config.getTamanhoEntrada(),
+                        config.getTipoEntrada().name()
+                );
+
+                double mediaSerialReferencia = mediasSeriais.getOrDefault(chave, 0.0);
+
+                CsvResumoExporter.appendResumo(
+                        arquivoCsvResumo,
+                        resultados,
+                        mediaSerialReferencia
+                );
             }
         }
+    }
+
+    private static String criarChave(String algoritmo, int tamanhoEntrada, String tipoEntrada) {
+        return algoritmo + "|" + tamanhoEntrada + "|" + tipoEntrada;
     }
 
     private static void imprimirResumo(List<ResultadoBenchmark> resultados) {
@@ -141,6 +209,7 @@ public class Main {
         System.out.println("Média: " + BenchmarkStats.calcularMedia(resultados) + " ms");
         System.out.println("Menor: " + BenchmarkStats.calcularMenorTempo(resultados) + " ms");
         System.out.println("Maior: " + BenchmarkStats.calcularMaiorTempo(resultados) + " ms");
+        System.out.println("Todos ordenados corretamente? " + BenchmarkStats.todosOrdenadosCorretamente(resultados));
         System.out.println("----------------------------------");
     }
 }
