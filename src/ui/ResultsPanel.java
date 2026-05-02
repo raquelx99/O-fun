@@ -521,5 +521,7 @@ public class ResultsPanel extends JPanel {
         return med;
     }
 
-    private String fmt(double v) { return String.format("%.4f", v); }
+    private String fmt(double v) {
+        return String.format("%.4f", v);
+    }
 }

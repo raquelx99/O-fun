@@ -144,6 +144,7 @@ public class ChallengePanel extends JPanel {
         gc.gridy = 4; gc.insets = new Insets(0, 0, 10, 0);
         card.add(algoritmoCombo, gc);
 
+
         JPanel botoes = new JPanel(new GridBagLayout());
         botoes.setOpaque(false);
         GridBagConstraints bg = new GridBagConstraints();
@@ -164,10 +165,12 @@ public class ChallengePanel extends JPanel {
         gc.gridy = 5; gc.insets = new Insets(0, 0, 8, 0);
         card.add(botoes, gc);
 
+
         scoreBar = new ScoreBarPanel();
         scoreBar.setPreferredSize(new Dimension(0, 36));
         gc.gridy = 6; gc.insets = new Insets(0, 0, 4, 0);
         card.add(scoreBar, gc);
+
 
         statusLabel = new JLabel(" ");
         statusLabel.setFont(UiTheme.SMALL_FONT);
@@ -175,6 +178,7 @@ public class ChallengePanel extends JPanel {
         statusLabel.setHorizontalAlignment(JLabel.CENTER);
         gc.gridy = 7; gc.insets = new Insets(0, 0, 0, 0);
         card.add(statusLabel, gc);
+
 
         GridBagConstraints filler = new GridBagConstraints();
         filler.gridx = 0; filler.gridy = 8; filler.weighty = 1;
@@ -346,6 +350,7 @@ public class ChallengePanel extends JPanel {
             g2.setStroke(new BasicStroke(1f));
             g2.draw(new RoundRectangle2D.Float(0, barY, w - 1, barH, barH, barH));
 
+            
             String txt = displayScore + " / 1000";
             g2.setFont(new Font("Poppins", Font.BOLD, 11));
             g2.setColor(UiTheme.TEXT);

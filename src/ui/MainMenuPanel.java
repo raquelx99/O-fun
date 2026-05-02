@@ -130,13 +130,10 @@ public class MainMenuPanel extends JPanel {
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
                 g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
                 g2.setColor(new Color(0, 0, 0, 60));
                 g2.fill(new RoundRectangle2D.Float(4, 6, getWidth() - 4, getHeight() - 4, 32, 32));
-
                 g2.setColor(new Color(26, 30, 52, 230));
                 g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 32, 32));
-
                 g2.setColor(new Color(90, 110, 200, 80));
                 g2.setStroke(new BasicStroke(1.5f));
                 g2.draw(new RoundRectangle2D.Float(1, 1, getWidth() - 2, getHeight() - 2, 32, 32));
@@ -148,10 +145,11 @@ public class MainMenuPanel extends JPanel {
         card.setBorder(BorderFactory.createEmptyBorder(28, 44, 28, 44));
 
         Object[][] botoes = {
-            {"Laboratorio de Benchmark", "lab",        UiTheme.BLUE,   UiTheme.BLUE_DARK},
-            {"Modo Desafio",              "desafio",    UiTheme.PURPLE, UiTheme.PURPLE_DARK},
-            {"Resultados e Graficos",     "resultados", UiTheme.PANEL,  UiTheme.PANEL_HOVER},
-            {"Sair",                      "sair",       UiTheme.PANEL,  UiTheme.PANEL_HOVER},
+            {"Laboratorio de Benchmark", "lab",        UiTheme.BLUE,                UiTheme.BLUE_DARK},
+            {"Modo Desafio",              "desafio",    UiTheme.PURPLE,              UiTheme.PURPLE_DARK},
+            {"Modo Aprenda",              "aprenda",    new Color(60, 180, 120),     new Color(40, 140, 90)},
+            {"Resultados e Graficos",     "resultados", UiTheme.PANEL,               UiTheme.PANEL_HOVER},
+            {"Sair",                      "sair",       UiTheme.PANEL,               UiTheme.PANEL_HOVER},
         };
 
         for (Object[] info : botoes) {
@@ -166,6 +164,7 @@ public class MainMenuPanel extends JPanel {
             switch ((String) info[1]) {
                 case "lab":        btn.addActionListener(e -> mainWindow.mostrarLaboratorio()); break;
                 case "desafio":    btn.addActionListener(e -> mainWindow.mostrarDesafio());     break;
+                case "aprenda":    btn.addActionListener(e -> mainWindow.mostrarAprenda());     break;
                 case "resultados": btn.addActionListener(e -> mainWindow.mostrarResultados());  break;
                 case "sair":       btn.addActionListener(e -> { animTimer.stop(); System.exit(0); }); break;
             }

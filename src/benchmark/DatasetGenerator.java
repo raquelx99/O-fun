@@ -5,8 +5,6 @@ import model.TipoEntrada;
 
 public class DatasetGenerator {
 
-    // Seed fixa garante reprodutibilidade científica: os mesmos dados
-    // são gerados em todas as execuções, permitindo comparação justa.
     private static final long SEED = 42L;
 
     public static int[] generate(int size, TipoEntrada tipo) {

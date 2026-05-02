@@ -15,11 +15,12 @@ public class ResumoCsvReader {
         if (!arquivo.exists()) return resultados;
 
         try (BufferedReader reader = new BufferedReader(new FileReader(arquivo))) {
-            String linha = reader.readLine();
+            String linha = reader.readLine(); // pula cabeçalho
 
             while ((linha = reader.readLine()) != null) {
                 if (linha.trim().isEmpty()) continue;
 
+                // Split respeitando campos entre aspas (ex: "Bubble Sort","Serial",...)
                 String[] partes = splitCsv(linha);
 
                 if (partes.length < 11) continue;
@@ -50,6 +51,13 @@ public class ResumoCsvReader {
         return resultados;
     }
 
+    /**
+     * Divide uma linha CSV respeitando campos entre aspas e removendo as aspas
+     * do valor resultante. Exemplo:
+     *   "Bubble Sort","Paralelo",4,1000,"ALEATORIA",12.3,...
+     * retorna:
+     *   ["Bubble Sort", "Paralelo", "4", "1000", "ALEATORIA", "12.3", ...]
+     */
     private static String[] splitCsv(String linha) {
         List<String> campos = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
@@ -59,6 +67,7 @@ public class ResumoCsvReader {
             char c = linha.charAt(i);
             if (c == '"') {
                 dentroAspas = !dentroAspas;
+                // não adiciona a aspa ao valor
             } else if (c == ',' && !dentroAspas) {
                 campos.add(sb.toString().trim());
                 sb.setLength(0);
@@ -66,7 +75,7 @@ public class ResumoCsvReader {
                 sb.append(c);
             }
         }
-        campos.add(sb.toString().trim());
+        campos.add(sb.toString().trim()); // último campo
 
         return campos.toArray(new String[0]);
     }

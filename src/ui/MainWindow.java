@@ -11,9 +11,9 @@ public class MainWindow extends JFrame {
     private static final int   FRAME_MS    = 1000 / FPS;
     private static final float SLIDE_FRAC  = 0.28f;
 
-    private JPanel       painelAtual;    
-    private BufferedImage snapAntigo;      
-    private BufferedImage snapNovo;      
+    private JPanel       painelAtual; 
+    private BufferedImage snapAntigo;  
+    private BufferedImage snapNovo;     
     private Timer        timer;
     private long         startTime;
     private int          direcao;
@@ -21,7 +21,7 @@ public class MainWindow extends JFrame {
     private final TransitionLayer camada;
 
     public MainWindow() {
-        setTitle("AlgoQuest - Arena da Ordenacao");
+        setTitle("O(n)");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(1150, 800);
         setLocationRelativeTo(null);
@@ -51,6 +51,9 @@ public class MainWindow extends JFrame {
         transicionarPara(new ResultsPanel(this), +1);
     }
 
+    public void mostrarAprenda() {
+        transicionarPara(new LearnPanel(this), +1);
+    }
 
     private void transicionarPara(JPanel novoPainel, int dir) {
         if (timer != null && timer.isRunning()) {
