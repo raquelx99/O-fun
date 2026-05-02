@@ -1,9 +1,11 @@
 package parallel;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import sort.BubbleSort;
 
@@ -30,32 +32,30 @@ public class ParallelBubbleSort implements ParallelSortAlgorithm {
         int tamanhoBloco = (int) Math.ceil((double) tamanho / threadsReais);
 
         ExecutorService executor = Executors.newFixedThreadPool(threadsReais);
-        BubbleSort bubbleSort = new BubbleSort();
+
+        List<Callable<Void>> tarefas = new ArrayList<>();
 
         for (int i = 0; i < threadsReais; i++) {
             int inicio = i * tamanhoBloco;
             int fim = Math.min(inicio + tamanhoBloco, tamanho);
 
             if (inicio < fim) {
-                executor.execute(() -> {
+                tarefas.add(() -> {
                     int[] bloco = Arrays.copyOfRange(array, inicio, fim);
-
-                    bubbleSort.sort(bloco);
-
-                    for (int j = 0; j < bloco.length; j++) {
-                        array[inicio + j] = bloco[j];
-                    }
+                    new BubbleSort().sort(bloco);
+                    System.arraycopy(bloco, 0, array, inicio, bloco.length);
+                    return null;
                 });
             }
         }
 
-        executor.shutdown();
-
         try {
-            executor.awaitTermination(1, TimeUnit.HOURS);
+            executor.invokeAll(tarefas);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.out.println("Bubble Sort paralelo interrompido.");
+        } finally {
+            executor.shutdown();
         }
 
         mesclarBlocos(array, tamanhoBloco);

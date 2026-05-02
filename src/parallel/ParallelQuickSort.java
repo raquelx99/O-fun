@@ -18,7 +18,6 @@ public class ParallelQuickSort implements ParallelSortAlgorithm {
 
         try (ForkJoinPool pool = new ForkJoinPool(numberOfThreads)) {
             pool.invoke(new QuickSortTask(array, 0, array.length - 1));
-            pool.shutdown();
         }
     }
 

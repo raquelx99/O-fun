@@ -44,11 +44,11 @@ public class CsvResumoExporter {
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(filePath, true))) {
             writer.println(
-                    primeiro.getAlgoritmo() + "," +
-                            primeiro.getVersao() + "," +
+                    "\"" + primeiro.getAlgoritmo() + "\"" + "," +
+                            "\"" + primeiro.getVersao() + "\"" + "," +
                             primeiro.getThreads() + "," +
                             primeiro.getTamanhoEntrada() + "," +
-                            primeiro.getTipoEntrada() + "," +
+                            "\"" + primeiro.getTipoEntrada() + "\"" + "," +
                             media + "," +
                             menor + "," +
                             maior + "," +

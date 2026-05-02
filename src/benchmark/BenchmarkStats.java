@@ -29,7 +29,7 @@ public class BenchmarkStats {
     }
 
     public static double calcularMaiorTempo(List<ResultadoBenchmark> resultados) {
-        double maior = Double.MIN_VALUE;
+        double maior = Double.NEGATIVE_INFINITY;
 
         for (ResultadoBenchmark resultado : resultados) {
             if (resultado.getTempoMs() > maior) {

@@ -5,6 +5,10 @@ import model.TipoEntrada;
 
 public class DatasetGenerator {
 
+    // Seed fixa garante reprodutibilidade científica: os mesmos dados
+    // são gerados em todas as execuções, permitindo comparação justa.
+    private static final long SEED = 42L;
+
     public static int[] generate(int size, TipoEntrada tipo) {
         switch (tipo) {
             case ALEATORIA:
@@ -28,7 +32,7 @@ public class DatasetGenerator {
     }
 
     private static int[] generateRandom(int size) {
-        Random random = new Random();
+        Random random = new Random(SEED);
         int[] array = new int[size];
 
         for (int i = 0; i < size; i++) {
@@ -50,7 +54,7 @@ public class DatasetGenerator {
 
     private static int[] generateNearlySorted(int size) {
         int[] array = generateSorted(size);
-        Random random = new Random();
+        Random random = new Random(SEED);
 
         int quantidadeTrocas = Math.max(1, size / 20);
 
@@ -77,7 +81,7 @@ public class DatasetGenerator {
     }
 
     private static int[] generateRepeated(int size) {
-        Random random = new Random();
+        Random random = new Random(SEED);
         int[] array = new int[size];
 
         for (int i = 0; i < size; i++) {

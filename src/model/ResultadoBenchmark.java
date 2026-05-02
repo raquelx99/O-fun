@@ -70,11 +70,12 @@ public class ResultadoBenchmark {
     }
 
     public String toCsvLine() {
-        return algoritmo + "," +
-                versao + "," +
+        // Campos de texto entre aspas para evitar quebra do CSV se houver vírgulas
+        return "\"" + algoritmo + "\"" + "," +
+                "\"" + versao + "\"" + "," +
                 threads + "," +
                 tamanhoEntrada + "," +
-                tipoEntrada + "," +
+                "\"" + tipoEntrada + "\"" + "," +
                 amostra + "," +
                 tempoMs + "," +
                 score + "," +
