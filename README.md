@@ -27,7 +27,7 @@ O **O(fun)** implementa quatro algoritmos de ordenação em versões serial e pa
 
 ## Funcionalidades da interface
 
-### ⚙ Laboratório de Benchmark
+### Laboratório de Benchmark
 Configure e execute benchmarks personalizados: escolha o algoritmo, versão (serial/paralelo), número de threads, tamanho da entrada, tipo de entrada e número de amostras. Visualize os resultados em tempo real.
 
 ### Modo Desafio
