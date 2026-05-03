@@ -18,6 +18,7 @@ public class ParallelQuickSort implements ParallelSortAlgorithm {
 
         try (ForkJoinPool pool = new ForkJoinPool(numberOfThreads)) {
             pool.invoke(new QuickSortTask(array, 0, array.length - 1));
+            // try-with-resources já chama close() → shutdown() ao sair do bloco.
         }
     }
 
@@ -52,6 +53,7 @@ public class ParallelQuickSort implements ParallelSortAlgorithm {
             );
         }
 
+        // ── Sequencial (chamado abaixo do limiar) ────────────────────────────
         private static void quickSortSequencial(int[] array, int inicio, int fim) {
             if (inicio < fim) {
                 int indicePivo = particionar(array, inicio, fim);
@@ -60,6 +62,10 @@ public class ParallelQuickSort implements ParallelSortAlgorithm {
             }
         }
 
+        /**
+         * Partição de Lomuto com pivô mediana-de-três — reutiliza os métodos
+         * estáticos de QuickSort para manter a lógica em um único lugar.
+         */
         private static int particionar(int[] array, int inicio, int fim) {
             QuickSort.medianaDeTres(array, inicio, fim);
             int pivo = array[fim];
