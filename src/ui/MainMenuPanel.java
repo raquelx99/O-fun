@@ -95,7 +95,7 @@ public class MainMenuPanel extends JPanel {
         titulo.setForeground(Color.WHITE);
         titulo.setAlignmentX(CENTER_ALIGNMENT);
 
-        JLabel sub = new JLabel("Porque O(n²) é passado");
+        JLabel sub = new JLabel("Porque O(n²) é passado!");
         sub.setFont(new Font("Poppins", Font.BOLD, 22));
         sub.setForeground(UiTheme.GOLD);
         sub.setAlignmentX(CENTER_ALIGNMENT);
