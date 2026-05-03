@@ -1,4 +1,4 @@
-# O(fun) — Arena da Ordenação
+# O(fun) — Porque O(n²) é passado!
 
 > Análise comparativa de algoritmos de ordenação em ambientes seriais e paralelos, com interface gamificada em Java Swing.
 
