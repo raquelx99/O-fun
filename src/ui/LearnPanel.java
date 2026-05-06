@@ -363,11 +363,34 @@ public class LearnPanel extends JPanel {
             explicacaoArea.setText(gerarExplicacaoPasso(a, b, isSwap));
             instructionBanner.limpar();
         } else {
-            aguardandoAcao = true;
-            acaoEsperadaA = a; acaoEsperadaB = b; acaoEhSwap = isSwap;
+            boolean proximoEhSwapDoPar = false;
+            if (!isSwap && passoAtual + 1 < passos.size()) {
+                int[] proximo = passos.get(passoAtual + 1);
+                proximoEhSwapDoPar = proximo[2] == 1 && proximo[0] == a && proximo[1] == b;
+            }
+
             comparacoes++;
             boolean maior = valores[a] > valores[b];
             compA = maior?a:b; mostraSeta = true;
+
+            if (!isSwap && proximoEhSwapDoPar) {
+                instructionBanner.mostrar(
+                    valores[a] + " > " + valores[b] + " — fora de ordem!",
+                    "Troca necessaria. Prepare-se para trocar!",
+                    InstructionBanner.Tipo.TROCAR
+                );
+                explicacaoArea.setText(gerarExplicacaoPasso(a, b, false));
+                progressBar.setProgresso(passoAtual, passos.size());
+                atualizarUI();
+                boardPanel.repaint();
+                javax.swing.Timer t = new javax.swing.Timer(700, ev -> processarPassoTroca(a, b));
+                t.setRepeats(false);
+                t.start();
+                return;
+            }
+
+            aguardandoAcao = true;
+            acaoEsperadaA = a; acaoEsperadaB = b; acaoEhSwap = isSwap;
 
             boolean precisaTrocar = isSwap;
             okBtn.setVisible(!precisaTrocar);
@@ -391,6 +414,37 @@ public class LearnPanel extends JPanel {
             explicacaoArea.setText(gerarExplicacaoPasso(a, b, isSwap));
         }
 
+        progressBar.setProgresso(passoAtual, passos.size());
+        atualizarUI();
+        boardPanel.repaint();
+    }
+
+    private void processarPassoTroca(int a, int b) {
+        passoAtual++;
+        if (passoAtual >= passos.size()) { concluirOrdenacao(); return; }
+
+        int[] passo = passos.get(passoAtual);
+        if (passo[2] != 1 || passo[0] != a || passo[1] != b) {
+            avancarPasso(); return;
+        }
+
+        isSwap = true;
+        highlightA = a; highlightB = b;
+
+        aguardandoAcao = true;
+        acaoEsperadaA = a; acaoEsperadaB = b; acaoEhSwap = true;
+
+        okBtn.setVisible(false);
+        passoBtn.setEnabled(false);
+        autoBtn.setEnabled(false);
+
+        instructionBanner.mostrar(
+            "TROQUE os blocos " + a + " e " + b + "!",
+            valores[a] + " > " + valores[b] + " — arraste um sobre o outro",
+            InstructionBanner.Tipo.TROCAR
+        );
+        iniciarDicaPiscante();
+        explicacaoArea.setText(gerarExplicacaoPasso(a, b, true));
         progressBar.setProgresso(passoAtual, passos.size());
         atualizarUI();
         boardPanel.repaint();

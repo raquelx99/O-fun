@@ -9,3 +9,13 @@ algoritmo,versao,threads,tamanhoEntrada,tipoEntrada,amostra,tempoMs,score,ordena
 "Bubble Sort","Paralelo",8,1000,"ALEATORIA",3,2.0624,6185.94520195209,true
 "Bubble Sort","Paralelo",8,1000,"ALEATORIA",4,1.522,6489.250862474533,true
 "Bubble Sort","Paralelo",8,1000,"ALEATORIA",5,1.1818,6741.8976812767805,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",1,3.185499,5752.326766377473,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",2,1.1002,6813.362892746439,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",3,1.766,6340.802619255848,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",4,1.572,6456.977350676498,true
+"Bubble Sort","Serial",1,1000,"ALEATORIA",5,0.6053,7410.391471946479,true
+"Bubble Sort","Paralelo",4,1000,"ALEATORIA",1,3.579701,5636.049310730399,true
+"Bubble Sort","Paralelo",4,1000,"ALEATORIA",2,1.273999,6666.867694913711,true
+"Bubble Sort","Paralelo",4,1000,"ALEATORIA",3,1.726199,6363.558108316877,true
+"Bubble Sort","Paralelo",4,1000,"ALEATORIA",4,1.8484,6295.281572779039,true
+"Bubble Sort","Paralelo",4,1000,"ALEATORIA",5,1.666599,6398.635467805331,true
